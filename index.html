@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Iron Lab</title>
+<style>
+  :root{--bg:#0a0a0f;--card:#14141d;--line:#25253a;--text:#f5f5fa;--muted:#8b8ba7;
+    --acc:#c6ff3d;--acc2:#ff6b35;--acc3:#4dd8ff;--warn:#ffb020}
+  *{box-sizing:border-box}
+  .hidden{display:none!important}
+  body{margin:0;min-height:100vh;font-family:system-ui,"Segoe UI",Tahoma,sans-serif;color:var(--text);
+    background:radial-gradient(circle at 10% 0%,rgba(198,255,61,.12),transparent 40%),
+    radial-gradient(circle at 100% 100%,rgba(255,107,53,.14),transparent 45%),var(--bg);padding-bottom:40px}
+
+  .topbar{position:sticky;top:0;z-index:10;display:flex;justify-content:center;align-items:center;gap:14px;
+    padding:12px 16px;background:rgba(10,10,15,.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  .topbar span{color:var(--muted);font-size:.9rem}
+  #countdown{font-size:1.2rem;font-weight:900;color:var(--acc);direction:ltr;letter-spacing:.5px;
+    text-shadow:0 0 18px rgba(198,255,61,.35);font-variant-numeric:tabular-nums}
+
+  .wrap{max-width:1000px;margin:0 auto;padding:24px 16px}
+  header{text-align:center;margin-bottom:24px}
+  h1{font-size:clamp(2.2rem,6vw,3.4rem);margin:0;font-weight:900;letter-spacing:-1px;
+    background:linear-gradient(90deg,var(--acc),var(--acc3));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{color:var(--muted);margin-top:6px}
+  .grid{display:grid;gap:18px;grid-template-columns:1fr}
+  @media(min-width:860px){.grid{grid-template-columns:1fr 1fr}}
+  .col{display:grid;gap:18px;align-content:start}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 10px 40px rgba(0,0,0,.4)}
+  .card h2{margin:0 0 14px;font-size:1.05rem;color:var(--acc)}
+
+  label{display:block;font-size:.85rem;color:var(--muted);margin:12px 0 6px}
+  input[type=number],input[type=text],textarea{width:100%;padding:12px 14px;border-radius:14px;border:1px solid var(--line);
+    background:#0e0e15;color:var(--text);font-size:1rem;font-family:inherit;outline:none}
+  textarea{min-height:76px;resize:vertical}
+  input:focus,textarea:focus{border-color:var(--acc)}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .pills{display:flex;gap:10px;flex-wrap:wrap}
+  .pill{flex:1;padding:12px;border-radius:14px;border:1px solid var(--line);background:#0e0e15;color:var(--muted);cursor:pointer;font-weight:700;font-family:inherit}
+  .pill.on{background:var(--acc);color:#0a0a0f;border-color:var(--acc)}
+  .checks{display:flex;gap:8px;flex-wrap:wrap}
+  .checks label{display:flex;align-items:center;gap:6px;margin:0;padding:8px 12px;border:1px solid var(--line);border-radius:12px;background:#0e0e15;color:var(--text);cursor:pointer}
+  input[type=range]{width:100%;accent-color:var(--acc2)}
+
+  .btn{width:100%;margin-top:14px;padding:14px;border:0;border-radius:16px;font-size:1rem;font-weight:900;font-family:inherit;
+    background:linear-gradient(90deg,var(--acc2),var(--acc));color:#0a0a0f;cursor:pointer}
+  .btn:disabled{opacity:.6;cursor:wait}
+  .btn.ghost{background:transparent;color:var(--acc);border:1px solid var(--acc)}
+  .btn.small{width:auto;margin:0;padding:10px 16px;font-size:.9rem}
+  .row-btns{display:flex;gap:8px;margin-top:12px}
+  .hint{font-size:.8rem;color:var(--muted);margin-top:10px;line-height:1.6}
+
+  .summary{font-size:.92rem;line-height:1.9;color:var(--muted)}
+  .summary b{color:var(--text)}
+
+  .kcal{text-align:center;padding:6px 0}
+  .kcal .num{font-size:4.2rem;font-weight:900;line-height:1;color:var(--acc);text-shadow:0 0 30px rgba(198,255,61,.35)}
+  .kcal .unit{color:var(--muted);font-size:.95rem}
+  .tag{display:inline-block;margin-top:10px;padding:6px 14px;border-radius:99px;background:rgba(255,107,53,.15);color:var(--acc2);font-size:.85rem;font-weight:700}
+
+  .ringbox{position:relative;width:160px;height:160px;margin:16px auto}
+  .ringbox svg{width:160px;height:160px}
+  .ringbox .val{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:1.9rem;font-weight:900}
+  .ringbox .val small{font-size:.72rem;color:var(--muted);font-weight:400}
+
+  .bar{margin:14px 0}
+  .bar .top{display:flex;justify-content:space-between;font-size:.9rem;margin-bottom:6px;gap:8px}
+  .track{height:12px;background:#0e0e15;border-radius:99px;overflow:hidden;border:1px solid var(--line)}
+  .fill{height:100%;width:0;border-radius:99px;transition:width 1s cubic-bezier(.2,.8,.2,1)}
+
+  .goal-box{padding:14px;border-radius:16px;background:#0e0e15;border:1px dashed var(--line);margin-top:14px}
+  .goal-box .eta{font-size:.9rem;color:var(--muted);line-height:1.8}
+  .goal-box b{color:var(--text)}
+
+  .water-big{font-size:1.6rem;font-weight:900;color:var(--acc3);margin:6px 0}
+  .water-controls{display:flex;gap:10px;margin-top:12px}
+  .water-controls button{flex:1}
+  .water-note{font-size:.78rem;color:var(--muted);margin-top:10px;line-height:1.6}
+
+  .food-list{list-style:none;padding:0;margin:12px 0 0}
+  .food-list li{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;
+    padding:10px 12px;border:1px solid var(--line);border-radius:12px;margin-bottom:8px;background:#0e0e15}
+  .food-list li small{color:var(--muted);width:100%}
+  .food-list button{background:none;border:0;color:var(--acc2);cursor:pointer;font-weight:700;font-family:inherit}
+  .empty{color:var(--muted);font-size:.9rem;text-align:center;padding:12px}
+
+  .preview{margin-top:14px;padding:14px;border-radius:16px;border:1px solid var(--acc3);background:rgba(77,216,255,.06)}
+  .preview .sum{font-weight:700;margin-bottom:10px;color:var(--acc3)}
+  .warn{margin-top:10px;padding:10px;border-radius:12px;background:rgba(255,176,32,.12);color:var(--warn);font-size:.85rem}
+  .motive{margin-top:10px;padding:14px;border-radius:14px;background:#0e0e15;border:1px dashed var(--line);text-align:center;font-weight:700}
+  .disc{font-size:.75rem;color:var(--muted);text-align:center;margin-top:16px;line-height:1.6}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span>⏳ متبقي على هدفك</span>
+  <b id="countdown">--</b>
+</div>
+
+<div class="wrap">
+  <header>
+    <h1>IRON LAB</h1>
+    <div class="sub">اعرف جسمك بالأرقام، وخلّيه يشتغل لصالحك</div>
+  </header>
+
+  <div class="grid">
+    <div class="col">
+      <section class="card" id="profileCard">
+        <h2>🧬 بياناتك</h2>
+        <div class="summary" id="summary"></div>
+        <button class="btn ghost" id="editBtn" type="button">✏️ تعديل البيانات</button>
+      </section>
+
+      <form class="card hidden" id="form">
+        <h2>🧬 بياناتك</h2>
+        <label>الجنس</label>
+        <div class="pills">
+          <button type="button" class="pill" data-sex="male">ذكر</button>
+          <button type="button" class="pill" data-sex="female">أنثى</button>
+        </div>
+        <div class="row">
+          <div><label for="age">العمر</label><input type="number" id="age" min="14" max="90" value="25" required></div>
+          <div><label for="weight">الوزن (kg)</label><input type="number" id="weight" min="30" max="250" value="80" required></div>
+        </div>
+        <div class="row">
+          <div><label for="height">الطول (cm)</label><input type="number" id="height" min="120" max="230" value="180" required></div>
+          <div><label for="targetWeight">وزن الهدف (kg)</label><input type="number" id="targetWeight" min="30" max="250" placeholder="اختياري"></div>
+        </div>
+        <label>أيام التمرين بالأسبوع: <b id="daysVal" style="color:var(--acc)">4</b></label>
+        <input type="range" id="days" min="0" max="7" value="4">
+
+        <h2 style="margin-top:20px">📏 المحيطات <span style="color:var(--muted);font-size:.8rem">(اختياري لنسبة الدهون)</span></h2>
+        <div class="row">
+          <div><label for="neck">الرقبة (cm)</label><input type="number" id="neck" min="20" max="70" placeholder="38"></div>
+          <div><label for="waist">الخصر (cm)</label><input type="number" id="waist" min="40" max="200" placeholder="85"></div>
+        </div>
+        <div id="hipWrap" class="hidden">
+          <label for="hip">الورك (cm)</label>
+          <input type="number" id="hip" min="50" max="200" placeholder="95">
+        </div>
+
+        <h2 style="margin-top:20px">🎯 هدفك</h2>
+        <div class="pills">
+          <button type="button" class="pill" data-goal="cut">تنشيف 🔥</button>
+          <button type="button" class="pill" data-goal="maintain">ثبات ⚖️</button>
+          <button type="button" class="pill" data-goal="bulk">تضخيم 💪</button>
+        </div>
+
+        <h2 style="margin-top:20px">💊 المكملات اللي تاخذها</h2>
+        <div class="checks">
+          <label><input type="checkbox" data-supp="whey"> بروتين واي</label>
+          <label><input type="checkbox" data-supp="creatine"> كرياتين</label>
+          <label><input type="checkbox" data-supp="multi"> فيتامينات</label>
+          <label><input type="checkbox" data-supp="omega"> أوميغا 3</label>
+        </div>
+
+        <button class="btn" type="submit">احفظ وحلّل ⚡</button>
+        <button class="btn ghost" id="cancelBtn" type="button">إلغاء</button>
+        <div class="hint">التقدير بيعتمد على معادلات معروفة، وهو تقدير مش تشخيص طبي.</div>
+      </form>
+
+      <section class="card">
+        <h2>🍽️ أكل اليوم</h2>
+        <div class="hint" id="dateLabel" style="margin:0 0 8px"></div>
+        <textarea id="req" placeholder="مثلاً: أكلت رز 200 جم ودجاج 150 جم&#10;أو: زيد الرز 100 جم وقلّل الخبز"></textarea>
+        <button class="btn" id="askBtn" type="button">حلّل وحدّث الخطة ⚡</button>
+        <div id="preview" class="preview hidden"></div>
+        <ul class="food-list" id="foodList"></ul>
+      </section>
+
+      <section class="card">
+        <h2>💧 الماء</h2>
+        <div class="water-big" id="waterVal">--</div>
+        <div class="track"><div class="fill" id="waterBar" style="background:linear-gradient(90deg,var(--acc3),var(--acc))"></div></div>
+        <div class="water-controls">
+          <button class="btn ghost small" id="waterMinus" type="button">− كوب</button>
+          <button class="btn small" id="waterPlus" type="button">+ كوب (250 مل)</button>
+        </div>
+        <div class="water-note" id="waterNote"></div>
+      </section>
+    </div>
+
+    <div class="col">
+      <section class="card">
+        <h2>📊 تحليلك</h2>
+        <div class="kcal">
+          <div class="num" id="kcal">--</div>
+          <div class="unit">سعرة حرارية يومياً</div>
+          <div class="tag" id="goalTag">أدخل بياناتك</div>
+        </div>
+        <div class="ringbox">
+          <svg viewBox="0 0 160 160">
+            <defs>
+              <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#c6ff3d"/><stop offset="1" stop-color="#4dd8ff"/>
+              </linearGradient>
+            </defs>
+            <circle cx="80" cy="80" r="70" fill="none" stroke="#25253a" stroke-width="12"/>
+            <circle id="arc" cx="80" cy="80" r="70" fill="none" stroke="url(#g)" stroke-width="12"
+              stroke-linecap="round" stroke-dasharray="439.8" stroke-dashoffset="439.8"
+              transform="rotate(-90 80 80)" style="transition:stroke-dashoffset 1.2s"/>
+          </svg>
+          <div class="val" id="bfVal">--</div>
+        </div>
+        <div class="motive" id="motive"></div>
+      </section>
+
+      <section class="card">
+        <h2>🥗 الماكروز اليوم</h2>
+        <div class="hint" id="kcalLeft"></div>
+        <div class="bar"><div class="top"><span>🥩 بروتين</span><b id="pVal">-</b></div>
+          <div class="track"><div class="fill" id="pBar" style="background:#ff6b35"></div></div></div>
+        <div class="bar"><div class="top"><span>🍚 كارب</span><b id="cVal">-</b></div>
+          <div class="track"><div class="fill" id="cBar" style="background:#c6ff3d"></div></div></div>
+        <div class="bar"><div class="top"><span>🥑 دهون</span><b id="fVal">-</b></div>
+          <div class="track"><div class="fill" id="fBar" style="background:#4dd8ff"></div></div></div>
+        <div class="hint" id="suppNote"></div>
+      </section>
+
+      <section class="card">
+        <h2>🏁 رحلة الهدف</h2>
+        <div class="track"><div class="fill" id="goalBar" style="background:linear-gradient(90deg,var(--acc2),var(--acc))"></div></div>
+        <div class="goal-box"><div class="eta" id="goalInfo">حط وزن الهدف عشان نحسب الوقت</div></div>
+      </section>
+
+      <div class="disc">هذي تقديرات لأغراض تعليمية وتحفيزية، وما بتغني عن استشارة طبيب أو مختص تغذية، خاصة إذا عندك حالة صحية أو أدوية.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const GOAL = {
+  cut:{mult:.8, rate:.5, name:"هدف: تنشيف", motive:"كل سعرة ناقصة اليوم، بتطلع من جسمك بكرا 🔥"},
+  maintain:{mult:1, rate:0, name:"هدف: ثبات", motive:"الثبات هو السر، والتكرار بيصنع النتائج ⚡"},
+  bulk:{mult:1.1, rate:.25, name:"هدف: تضخيم", motive:"عضلاتك بتنبني وإنت نايم، كُل بذكاء 💪"}
+};
+const SUPP = {
+  whey:{label:"بروتين واي", kcal:120, p:24, c:3, f:2, water:0},
+  creatine:{label:"كرياتين", kcal:0, p:0, c:0, f:0, water:500},
+  multi:{label:"فيتامينات", kcal:0, p:0, c:0, f:0, water:0},
+  omega:{label:"أوميغا 3", kcal:10, p:0, c:0, f:1, water:0}
+};
+
+const PK = "ironlab_profile";
+const today = () => new Date().toLocaleDateString("en-CA");
+const FK = () => "ironlab_food_" + today();
+const WK = () => "ironlab_water_" + today();
+const get = (k, d) => JSON.parse(localStorage.getItem(k) ?? JSON.stringify(d));
+const put = (k, v) => localStorage.setItem(k, JSON.stringify(v));
+const loadProfile = () => get(PK, null);
+const loadFoods = () => get(FK(), []);
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const round = n => Math.round(n);
+
+function bmr({sex, weightKg, heightCm, age}) {
+  const b = 10*weightKg + 6.25*heightCm - 5*age;
+  return sex === "male" ? b + 5 : b - 161;
+}
+function activityFactor(d) { return d <= 1 ? 1.2 : d <= 3 ? 1.375 : d <= 5 ? 1.55 : 1.725; }
+function tdee(p) { return bmr(p) * activityFactor(p.daysPerWeek); }
+
+function bodyFatNavy({sex, heightCm, neckCm, waistCm, hipCm}) {
+  let bf;
+  if (!neckCm || !waistCm) return null;
+  if (sex === "male") {
+    bf = 86.01*Math.log10(waistCm-neckCm) - 70.041*Math.log10(heightCm) + 36.76;
+  } else {
+    if (!hipCm) return null;
+    bf = 163.205*Math.log10(waistCm+hipCm-neckCm) - 97.684*Math.log10(heightCm) - 78.387;
+  }
+  if (!Number.isFinite(bf) || bf < 2 || bf > 60) return null;
+  return Math.round(bf*10)/10;
+}
+
+function suppTotals(list = []) {
+  return list.reduce((t, k) => {
+    const s = SUPP[k];
+    return {kcal:t.kcal+s.kcal, p:t.p+s.p, c:t.c+s.c, f:t.f+s.f, water:t.water+s.water};
+  }, {kcal:0, p:0, c:0, f:0, water:0});
+}
+
+function dailyTargets(p) {
+  const calories = round(tdee(p) * GOAL[p.goal].mult);
+  const protein = round(2.2 * p.weightKg);
+  const fat = round(calories * 0.25 / 9);
+  const carbs = Math.max(0, round((calories - protein*4 - fat*9) / 4));
+  return {calories, protein, carbs, fat};
+}
+
+function foodTargets(p) {
+  const t = dailyTargets(p), s = suppTotals(p.supps);
+  return {calories:t.calories-s.kcal, protein:t.protein-s.p, carbs:t.carbs-s.c, fat:t.fat-s.f};
+}
+
+function waterTarget(p) {
+  const s = suppTotals(p.supps);
+  const ml = p.weightKg*35 + (p.daysPerWeek/7)*500 + s.water;
+  return Math.round(ml/100)*100;
+}
+
+function sumNutr(foods) {
+  return foods.reduce((t, f) => {
+    const k = f.grams/100;
+    t.calories += f.kcalPer100*k; t.protein += f.proteinPer100*k;
+    t.carbs += f.carbsPer100*k; t.fat += f.fatPer100*k;
+    return t;
+  }, {calories:0, protein:0, carbs:0, fat:0});
+}
+
+function goalInfo(p) {
+  const g = GOAL[p.goal];
+  if (!p.targetWeight || !g.rate) return null;
+  const diff = p.targetWeight - p.weightKg;
+  const wrong = p.goal === "bulk" ? diff <= 0 : diff >= 0;
+  if (wrong) return {msg: diff === 0 ? "وصلت للهدف 🎉" : `وزن الهدف لازم يكون ${p.goal==="bulk"?"أعلى":"أقل"} من وزنك الحالي`};
+  const weeks = Math.abs(diff) / g.rate;
+  return {targetDate: Date.now() + weeks*7*864e5, weeks, diff};
+}
+
+let draft = {sex:"male", goal:"maintain"};
+let goalDate = null;
+let pending = null;
+
+function setSex(s) {
+  draft.sex = s;
+  document.querySelectorAll("[data-sex]").forEach(b => b.classList.toggle("on", b.dataset.sex === s));
+  $("hipWrap").classList.toggle("hidden", s !== "female");
+}
+function setGoal(g) {
+  draft.goal = g;
+  document.querySelectorAll("[data-goal]").forEach(b => b.classList.toggle("on", b.dataset.goal === g));
+}
+document.querySelectorAll("[data-sex]").forEach(b => b.onclick = () => setSex(b.dataset.sex));
+document.querySelectorAll("[data-goal]").forEach(b => b.onclick = () => setGoal(b.dataset.goal));
+$("days").oninput = e => $("daysVal").textContent = e.target.value;
+
+function fillForm(p) {
+  setSex(p.sex); setGoal(p.goal);
+  $("age").value = p.age; $("weight").value = p.weightKg; $("height").value = p.heightCm;
+  $("targetWeight").value = p.targetWeight ?? "";
+  $("days").value = p.daysPerWeek; $("daysVal").textContent = p.daysPerWeek;
+  $("neck").value = p.neckCm ?? ""; $("waist").value = p.waistCm ?? ""; $("hip").value = p.hipCm ?? "";
+  document.querySelectorAll("[data-supp]").forEach(c => c.checked = (p.supps || []).includes(c.dataset.supp));
+}
+
+function showForm(on) {
+  $("form").classList.toggle("hidden", !on);
+  $("profileCard").classList.toggle("hidden", on);
+  $("cancelBtn").classList.toggle("hidden", !loadProfile());
+}
+
+$("editBtn").onclick = () => { fillForm(loadProfile()); showForm(true); };
+$("cancelBtn").onclick = () => showForm(false);
+
+$("form").onsubmit = e => {
+  e.preventDefault();
+  const old = loadProfile();
+  const w = +$("weight").value;
+  const p = {
+    sex: draft.sex, goal: draft.goal,
+    age: +$("age").value, weightKg: w, heightCm: +$("height").value,
+    daysPerWeek: +$("days").value,
+    targetWeight: +$("targetWeight").value || null,
+    neckCm: +$("neck").value || null, waistCm: +$("waist").value || null, hipCm: +$("hip").value || null,
+    supps: [...document.querySelectorAll("[data-supp]:checked")].map(c => c.dataset.supp),
+    startWeight: old?.startWeight ?? w,
+    startDate: old?.startDate ?? new Date().toISOString()
+  };
+  put(PK, p);
+  showForm(false);
+  renderAll();
+};
+
+function renderSummary(p) {
+  const supps = p.supps.length ? p.supps.map(k => SUPP[k].label).join("، ") : "ما في";
+  $("summary").innerHTML = `
+    الجنس: <b>${p.sex==="male"?"ذكر":"أنثى"}</b> · العمر: <b>${p.age}</b><br>
+    الوزن: <b>${p.weightKg} kg</b> · الطول: <b>${p.heightCm} cm</b>
+    ${p.targetWeight ? `· الهدف: <b>${p.targetWeight} kg</b>` : ""}<br>
+    تمرين: <b>${p.daysPerWeek} أيام/أسبوع</b> · ${GOAL[p.goal].name}<br>
+    المكملات: <b>${supps}</b>`;
+}
+
+function animateNumber(el, target) {
+  const t0 = performance.now();
+  const step = now => {
+    const k = Math.min((now - t0)/800, 1);
+    el.textContent = Math.round(target * (1 - Math.pow(1-k, 3)));
+    if (k < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
+function setBar(key, eaten, goal) {
+  const pct = goal > 0 ? Math.min(100, eaten/goal*100) : 0;
+  $(`${key}Val`).textContent = `${round(eaten)} / ${goal} جم`;
+  $(`${key}Bar`).style.width = pct + "%";
+  $(`${key}Bar`).style.opacity = eaten > goal && goal > 0 ? .55 : 1;
+}
+
+function renderGoal(p) {
+  const info = goalInfo(p);
+  goalDate = info?.targetDate ?? null;
+  if (!p.targetWeight) {
+    $("goalInfo").innerHTML = "حط وزن الهدف عشان نحسب المدة المتوقعة";
+    $("goalBar").style.width = "0%";
+    return;
+  }
+  if (!info || info.msg) {
+    $("goalInfo").innerHTML = info?.msg || "الهدف هذا ما يحتاج تقدير وقت (ثبات)";
+    $("goalBar").style.width = "0%";
+    return;
+  }
+  const start = p.startWeight;
+  const total = Math.abs(p.targetWeight - start) || 1;
+  const done = Math.abs(start - p.weightKg);
+  $("goalBar").style.width = Math.min(100, done/total*100) + "%";
+  $("goalInfo").innerHTML = `
+    متبقي: <b>${Math.abs(info.diff).toFixed(1)} kg</b> بمعدل ${GOAL[p.goal].rate} kg أسبوعياً<br>
+    الوصول المتوقع: <b>${new Date(info.targetDate).toLocaleDateString("ar")}</b><br>
+    التقدم: <b>${round(Math.min(100, done/total*100))}%</b>`;
+}
+
+function renderWater(p) {
+  const target = waterTarget(p);
+  const ml = get(WK(), 0);
+  $("waterVal").textContent = `${(ml/1000).toFixed(2)} / ${(target/1000).toFixed(1)} لتر`;
+  $("waterBar").style.width = Math.min(100, ml/target*100) + "%";
+  const s = suppTotals(p.supps);
+  $("waterNote").innerHTML = `الحساب: الوزن × 35 مل${p.daysPerWeek ? " + معدل أيام التمرين" : ""}${s.water ? " + كرياتين" : ""}.
+    الكوب 250 مل، والمجموع اليوم ${ml} مل.`;
+}
+
+function renderFoods() {
+  const list = loadFoods();
+  $("dateLabel").textContent = "تاريخ اليوم: " + new Date().toLocaleDateString("ar");
+  $("foodList").innerHTML = list.length
+    ? list.map((f, i) => `<li><span>${esc(f.name)} · <b>${f.grams} جم</b></span>
+        <button type="button" data-del="${i}">حذف</button></li>`).join("")
+    : `<div class="empty">ما سجلت أكل لليوم بعد</div>`;
+}
+
+function renderAll() {
+  const p = loadProfile();
+  renderFoods();
+  if (!p) return;
+
+  renderSummary(p);
+  const t = dailyTargets(p), ft = foodTargets(p);
+  animateNumber($("kcal"), t.calories);
+  $("goalTag").textContent = GOAL[p.goal].name;
+  $("motive").textContent = GOAL[p.goal].motive;
+
+  const bf = bodyFatNavy({sex:p.sex, heightCm:p.heightCm, neckCm:p.neckCm, waistCm:p.waistCm, hipCm:p.hipCm});
+  const C = 439.8;
+  if (bf !== null) {
+    $("arc").style.strokeDashoffset = C * (1 - Math.min(bf/40, 1));
+    $("bfVal").innerHTML = `${bf}%<small>نسبة الدهون (تقدير)</small>`;
+  } else {
+    $("arc").style.strokeDashoffset = C;
+    $("bfVal").innerHTML = `--<small>أضف المحيطات</small>`;
+  }
+
+  const eaten = sumNutr(loadFoods());
+  const left = round(ft.calories - eaten.calories);
+  $("kcalLeft").textContent = left >= 0 ? `متبقي لليوم: ${left} سعرة` : `تجاوزت الهدف بـ ${-left} سعرة`;
+  setBar("p", eaten.protein, round(ft.protein));
+  setBar("c", eaten.carbs, round(ft.carbs));
+  setBar("f", eaten.fat, round(ft.fat));
+  $("suppNote").textContent = p.supps.length
+    ? `تم خصم المكملات من الهدف: ${p.supps.map(k => SUPP[k].label).join("، ")}`
+    : "";
+
+  renderGoal(p);
+  renderWater(p);
+  tickCountdown();
+}
+
+function tickCountdown() {
+  if (!goalDate) { $("countdown").textContent = "حط وزن الهدف"; return; }
+  let s = Math.max(0, Math.floor((goalDate - Date.now())/1000));
+  const d = Math.floor(s/86400); s %= 86400;
+  const h = Math.floor(s/3600); s %= 3600;
+  const m = Math.floor(s/60); s %= 60;
+  $("countdown").textContent = `${d} يوم · ${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
+}
+setInterval(tickCountdown, 1000);
+
+function addWater(delta) {
+  put(WK(), Math.max(0, get(WK(), 0) + delta));
+  renderAll();
+}
+$("waterPlus").onclick = () => addWater(250);
+$("waterMinus").onclick = () => addWater(-250);
+
+$("askBtn").onclick = async () => {
+  const text = $("req").value.trim();
+  const p = loadProfile();
+  if (!text) return;
+  if (!p) { alert("حط بياناتك أول"); return; }
+
+  $("askBtn").disabled = true;
+  $("askBtn").textContent = "جاري التحليل...";
+  try {
+    const res = await fetch("/api/plan", {
+      method: "POST",
+      headers: {"content-type": "application/json"},
+      body: JSON.stringify({request: text, foods: loadFoods(), target: foodTargets(p)})
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+    pending = data;
+    showPreview(data);
+  } catch (err) {
+    $("preview").innerHTML = `<div class="warn">${esc(err.message)}</div>`;
+    $("preview").classList.remove("hidden");
+  } finally {
+    $("askBtn").disabled = false;
+    $("askBtn").textContent = "حلّل وحدّث الخطة ⚡";
+  }
+};
+
+function showPreview(d) {
+  const rows = d.foods.map(f =>
+    `<li><span>${esc(f.name)} · <b>${f.grams} جم</b></span><small>${esc(f.reason || "")}</small></li>`).join("");
+  $("preview").innerHTML = `
+    <div class="sum">${esc(d.summary || "خطة جديدة")}</div>
+    <ul class="food-list">${rows}</ul>
+    ${d.ok ? "" : `<div class="warn">الأرقام بعيدة شوي عن الهدف، تقدر تعتمدها أو تكتب طلب ثاني</div>`}
+    <div class="row-btns">
+      <button class="btn small" id="okBtn" type="button">اعتمد ✅</button>
+      <button class="btn ghost small" id="noBtn" type="button">إلغاء</button>
+    </div>`;
+  $("preview").classList.remove("hidden");
+  $("okBtn").onclick = () => {
+    put(FK(), pending.foods);
+    pending = null;
+    $("preview").classList.add("hidden");
+    $("req").value = "";
+    renderAll();
+  };
+  $("noBtn").onclick = () => {
+    pending = null;
+    $("preview").classList.add("hidden");
+  };
+}
+
+$("foodList").onclick = e => {
+  const i = e.target.dataset.del;
+  if (i === undefined) return;
+  const list = loadFoods();
+  list.splice(+i, 1);
+  put(FK(), list);
+  renderAll();
+};
+
+if (loadProfile()) {
+  fillForm(loadProfile());
+  showForm(false);
+  renderAll();
+} else {
+  setSex("male");
+  setGoal("maintain");
+  showForm(true);
+  renderFoods();
+}
+</script>
+</body>
+</html>
